@@ -1,0 +1,49 @@
+name: PyTest
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: Run Tests and Coverage Report
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v6
+
+      - name: Install 'raw2ismrmrd' Package and Dependencies
+        run: pip install --extra-index-url https://pypi.org/simple/ --upgrade --upgrade-strategy eager .[tests]
+
+      - name: Install PyTest GitHub Annotation Plugin
+        run: pip install pytest-github-actions-annotate-failures
+
+      - name: Run PyTest and Generate Coverage Report
+        shell: bash # use bash to enable pipefail
+        run: |
+          pytest -n 4 --junitxml=pytest.xml \
+          --cov-report=term-missing:skip-covered --cov=raw2ismrmrd | tee pytest-coverage.txt
+
+      - name: Upload PyTest Coverage Report
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: pytest-report-${{ matrix.python-version }}
+          path: |
+            pytest-coverage.txt
+            pytest.xml
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+
+  # Cancel in-progress runs when a new workflow with the same group name is triggered
+  cancel-in-progress: true
