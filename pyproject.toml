@@ -49,7 +49,7 @@ tests = [
     "pytest-cov",
     "pytest-xdist",
 ]
-examples = ["mrpro"]
+examples = ["mrpro", "einops", "ipykernel", "cmap"]
 dev = ["mrpro[examples, tests]"]
 
 [project.urls]

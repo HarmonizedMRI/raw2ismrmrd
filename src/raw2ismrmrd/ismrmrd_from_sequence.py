@@ -14,7 +14,7 @@ from raw2ismrmrd.utils import create_header
 
 
 def ismrmrd_from_sequence(
-    adc_data_list: Sequence[np.ndarray], filename_seq: Path | str, filename_mrd: Path | str
+    adc_data_list: Sequence[np.ndarray], filename_seq: Path | str, filename_mrd: Path | str, replace_mrd: bool = False
 ) -> ismrmrd.Dataset:
     """Create ismrmrd file based on list of adc data and pulseq sequence file.
 
@@ -31,6 +31,15 @@ def ismrmrd_from_sequence(
     -------
        ISMRMRD raw data file
     """
+    if isinstance(filename_mrd, str):
+        filename_mrd = Path(filename_mrd)
+
+    if filename_mrd.exists():
+        if replace_mrd:
+            filename_mrd.unlink()
+        else:
+            raise ValueError(f'{filename_mrd} already exists. Please delete file or set "replace_mrd" to True.')
+
     sequence = pp.Sequence()
     sequence.read(str(filename_seq))
 
