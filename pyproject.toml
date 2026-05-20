@@ -42,6 +42,7 @@ dependencies = [
     "numpy==1.26.4",
     "matplotlib<4.0",
     "pypulseq>=1.4.2",
+    "ismrmrd>=1.14.1",
 ]
 
 [project.optional-dependencies]
@@ -116,5 +117,5 @@ skip-magic-trailing-comma = false
 locale = "en-us"
 
 [[tool.mypy.overrides]]
-module = ["ismrmrd.*", "pypulseq.*"]
+module = ["ismrmrd.*", "pypulseq.*", "GERecon.*"]
 ignore_missing_imports = true
