@@ -56,7 +56,7 @@ tests = [
     "pytest-xdist",
 ]
 examples = ["mrpro", "einops", "ipykernel", "cmap", "zenodo_get"]
-dev = ["mrpro[examples, tests]"]
+dev = ["raw2ismrmrd[examples, tests]"]
 
 [project.urls]
 "repository" = "https://github.com/HarmonizedMRI/raw2ismrmrd"
