@@ -14,7 +14,11 @@ from raw2ismrmrd.utils import create_header
 
 
 def ismrmrd_from_sequence(
-    adc_data_list: Sequence[np.ndarray], filename_seq: Path | str, filename_mrd: Path | str, replace_mrd: bool = False
+    adc_data_list: Sequence[np.ndarray],
+    filename_seq: Path | str,
+    filename_mrd: Path | str,
+    adc_time_stamps: Sequence[float] | None = None,
+    replace_mrd: bool = False,
 ) -> ismrmrd.Dataset:
     """Create ismrmrd file based on list of adc data and pulseq sequence file.
 
@@ -26,6 +30,10 @@ def ismrmrd_from_sequence(
         filename for sequence file
     filename_mrd
         filename for output ISMRMRD file
+    adc_time_stamps
+        list of time stamps for each adc data block, in seconds. If None, acquisition time stamps will be 0.
+    replace_mrd
+        whether to replace existing ISMRMRD file if it already exists
 
     Returns
     -------
@@ -39,6 +47,9 @@ def ismrmrd_from_sequence(
             filename_mrd.unlink()
         else:
             raise ValueError(f'{filename_mrd} already exists. Please delete file or set "replace_mrd" to True.')
+
+    if adc_time_stamps is not None and (n_timestamps := len(adc_time_stamps)) != (n_acq := len(adc_data_list)):
+        raise ValueError(f'Time stamps ({n_timestamps}) and acquisitions ({n_acq}) does not match.')
 
     sequence = pp.Sequence()
     sequence.read(str(filename_seq))
@@ -63,10 +74,10 @@ def ismrmrd_from_sequence(
     # Create new file
     ds = ismrmrd.Dataset(str(filename_mrd), create_if_needed=True)
 
-    n_readout = adc_data_list[0].shape[-1]
-    num_channels = adc_data_list[0].shape[-2]
-    n_phase_encoding = max(adc_labels.get('LIN', 0)) - min(adc_labels.get('LIN', 0)) + 1
-    n_slice_encoding = max(adc_labels.get('PAR', 0)) - min(adc_labels.get('PAR', 0)) + 1
+    n_readout = adc_data_list[-1].shape[-1]
+    num_channels = adc_data_list[-1].shape[-2]
+    n_phase_encoding = max(adc_labels.get('LIN', (0,))) - min(adc_labels.get('LIN', (0,))) + 1
+    n_slice_encoding = max(adc_labels.get('PAR', (0,))) - min(adc_labels.get('PAR', (0,))) + 1
     hdr = create_header(
         traj_type='cartesian',
         encoding_fov=Fov(*sequence.get_definition('FOV').tolist()),
@@ -107,10 +118,17 @@ def ismrmrd_from_sequence(
     # add acquisitions with trajectory information
     for idx, adc_data in enumerate(adc_data_list):
         acq = ismrmrd.Acquisition()
+        n_readout = adc_data.shape[-1]
+        num_channels = adc_data.shape[-2]
         acq.resize(n_readout, num_channels)
         acq.data[:] = adc_data
 
         acq.center_sample = round(n_readout / 2)
+
+        # Time stamps are saved as uint32.
+        # Vendors therefore not use millisecond but custom time stamps in units of 2.5 ms.
+        if adc_time_stamps is not None:
+            acq.acquisition_time_stamp = int(adc_time_stamps[idx] / 2.5e3)
 
         acq.idx.kspace_encode_step_1 = adc_labels.get('LIN')[idx] if 'LIN' in adc_labels else 0
         acq.idx.kspace_encode_step_2 = adc_labels.get('PAR')[idx] if 'PAR' in adc_labels else 0
@@ -125,11 +143,17 @@ def ismrmrd_from_sequence(
         acq.slice_dir = (0.0, 0.0, 1.0)
 
         # Flags
-        if adc_labels.get('NAV', 0)[idx]:
+        if adc_labels.get('NAV')[idx] if 'NAV' in adc_labels else 0:
             acq.setFlag(ismrmrd.ACQ_IS_PHASECORR_DATA)
 
-        if adc_labels.get('NOISE', 0)[idx]:
+        if adc_labels.get('NOISE')[idx] if 'NOISE' in adc_labels else 0:
             acq.setFlag(ismrmrd.ACQ_IS_NOISE_MEASUREMENT)
+
+        if adc_labels.get('IMA')[idx] if 'IMA' in adc_labels else 0:
+            acq.setFlag(ismrmrd.ACQ_IS_PARALLEL_CALIBRATION_AND_IMAGING)
+
+        if adc_labels.get('PMC')[idx] if 'PMC' in adc_labels else 0:
+            acq.setFlag(ismrmrd.ACQ_IS_RTFEEDBACK_DATA)
 
         ds.append_acquisition(acq)
 

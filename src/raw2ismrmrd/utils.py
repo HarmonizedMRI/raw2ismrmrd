@@ -123,52 +123,53 @@ def create_header(
     if set_limits is None:
         set_limits = Limits()
 
-    hdr = ismrmrd.xsd.ismrmrdHeader()
-
     # experimental conditions
-    exp = ismrmrd.xsd.experimentalConditionsType()
-    exp.H1resonanceFrequency_Hz = int(h1_resonance_freq)
-    hdr.experimentalConditions = exp
+    exp = ismrmrd.xsd.experimentalConditionsType(H1resonanceFrequency_Hz=int(h1_resonance_freq))
+    hdr = ismrmrd.xsd.ismrmrdHeader(experimentalConditions=exp)
 
     # user parameters
-    dtime = ismrmrd.xsd.userParameterDoubleType()
-    dtime.name = 'dwellTime_us'
-    dtime.value_ = dwell_time * 1e6
+    dtime = ismrmrd.xsd.userParameterDoubleType(name='dwellTime_us', value=dwell_time * 1e6)
     hdr.userParameters = ismrmrd.xsd.userParametersType()
     hdr.userParameters.userParameterDouble.append(dtime)
 
-    # encoding
-    encoding = ismrmrd.xsd.encodingType()
-    encoding.trajectory = ismrmrd.xsd.trajectoryType(traj_type)
-
     # set fov and matrix size
-    efov = ismrmrd.xsd.fieldOfViewMm(m_to_mm(encoding_fov.x), m_to_mm(encoding_fov.y), m_to_mm(encoding_fov.z))
-    rfov = ismrmrd.xsd.fieldOfViewMm(m_to_mm(recon_fov.x), m_to_mm(recon_fov.y), m_to_mm(recon_fov.z))
+    efov = ismrmrd.xsd.fieldOfViewMm(x=m_to_mm(encoding_fov.x), y=m_to_mm(encoding_fov.y), z=m_to_mm(encoding_fov.z))
+    rfov = ismrmrd.xsd.fieldOfViewMm(x=m_to_mm(recon_fov.x), y=m_to_mm(recon_fov.y), z=m_to_mm(recon_fov.z))
 
-    ematrix = ismrmrd.xsd.matrixSizeType(int(encoding_matrix.n_x), int(encoding_matrix.n_y), int(encoding_matrix.n_z))
-    rmatrix = ismrmrd.xsd.matrixSizeType(int(recon_matrix.n_x), int(recon_matrix.n_y), int(recon_matrix.n_z))
+    ematrix = ismrmrd.xsd.matrixSizeType(
+        x=int(encoding_matrix.n_x), y=int(encoding_matrix.n_y), z=int(encoding_matrix.n_z)
+    )
+    rmatrix = ismrmrd.xsd.matrixSizeType(x=int(recon_matrix.n_x), y=int(recon_matrix.n_y), z=int(recon_matrix.n_z))
 
     # set encoded and recon spaces
-    escape = ismrmrd.xsd.encodingSpaceType()
-    escape.matrixSize = ematrix
-    escape.fieldOfView_mm = efov
-    rspace = ismrmrd.xsd.encodingSpaceType()
-    rspace.matrixSize = rmatrix
-    rspace.fieldOfView_mm = rfov
-    encoding.encodedSpace = escape
-    encoding.reconSpace = rspace
+    escape = ismrmrd.xsd.encodingSpaceType(matrixSize=ematrix, fieldOfView_mm=efov)
+    rspace = ismrmrd.xsd.encodingSpaceType(matrixSize=rmatrix, fieldOfView_mm=rfov)
 
     # encoding limits
     limits = ismrmrd.xsd.encodingLimitsType()
-    limits.kspace_encoding_step_1 = ismrmrd.xsd.limitType(k1_limits.min, k1_limits.max, k1_limits.center)
-    limits.kspace_encoding_step_2 = ismrmrd.xsd.limitType(k2_limits.min, k2_limits.max, k2_limits.center)
-    limits.slice = ismrmrd.xsd.limitType(slice_limits.min, slice_limits.max, slice_limits.center)
-    limits.contrast = ismrmrd.xsd.limitType(contrast_limits.min, contrast_limits.max, contrast_limits.center)
-    limits.average = ismrmrd.xsd.limitType(average_limits.min, average_limits.max, average_limits.center)
-    limits.repetition = ismrmrd.xsd.limitType(repetition_limits.min, repetition_limits.max, repetition_limits.center)
-    limits.phase = ismrmrd.xsd.limitType(phase_limits.min, phase_limits.max, phase_limits.center)
-    limits.set = ismrmrd.xsd.limitType(set_limits.min, set_limits.max, set_limits.center)
-    encoding.encodingLimits = limits
+    limits.kspace_encoding_step_1 = ismrmrd.xsd.limitType(
+        minimum=k1_limits.min, maximum=k1_limits.max, center=k1_limits.center
+    )
+    limits.kspace_encoding_step_2 = ismrmrd.xsd.limitType(
+        minimum=k2_limits.min, maximum=k2_limits.max, center=k2_limits.center
+    )
+    limits.slice = ismrmrd.xsd.limitType(minimum=slice_limits.min, maximum=slice_limits.max, center=slice_limits.center)
+    limits.contrast = ismrmrd.xsd.limitType(
+        minimum=contrast_limits.min, maximum=contrast_limits.max, center=contrast_limits.center
+    )
+    limits.average = ismrmrd.xsd.limitType(
+        minimum=average_limits.min, maximum=average_limits.max, center=average_limits.center
+    )
+    limits.repetition = ismrmrd.xsd.limitType(
+        minimum=repetition_limits.min, maximum=repetition_limits.max, center=repetition_limits.center
+    )
+    limits.phase = ismrmrd.xsd.limitType(minimum=phase_limits.min, maximum=phase_limits.max, center=phase_limits.center)
+    limits.set = ismrmrd.xsd.limitType(minimum=set_limits.min, maximum=set_limits.max, center=set_limits.center)
+
+    trajectory = ismrmrd.xsd.trajectoryType(traj_type)
+    encoding = ismrmrd.xsd.encodingType(
+        encodedSpace=escape, reconSpace=rspace, trajectory=trajectory, encodingLimits=limits
+    )
 
     # append encoding
     hdr.encoding.append(encoding)

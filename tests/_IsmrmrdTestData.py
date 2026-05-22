@@ -47,13 +47,11 @@ class IsmrmrdTestData:
         # Open the dataset
         dataset = ismrmrd.Dataset(self.filename, 'dataset', create_if_needed=True)
 
-        # Create the XML header and write it to the file
-        header = ismrmrd.xsd.ismrmrdHeader()
-
         # Experimental Conditions
-        exp = ismrmrd.xsd.experimentalConditionsType()
-        exp.H1resonanceFrequency_Hz = 128000000
-        header.experimentalConditions = exp
+        exp = ismrmrd.xsd.experimentalConditionsType(H1resonanceFrequency_Hz=128000000)
+
+        # Create the XML header and write it to the file
+        header = ismrmrd.xsd.ismrmrdHeader(experimentalConditions=exp)
 
         # Acquisition System Information
         sys = ismrmrd.xsd.acquisitionSystemInformationType()
@@ -69,47 +67,19 @@ class IsmrmrdTestData:
         seq.echo_spacing = 5.6
         header.sequenceParameters = seq
 
-        # Encoding
-        encoding = ismrmrd.xsd.encodingType()
-        encoding.trajectory = ismrmrd.xsd.trajectoryType(self.trajectory_type)
-
         # Encoded and recon spaces
-        encoding_fov = ismrmrd.xsd.fieldOfViewMm()
-        encoding_matrix = ismrmrd.xsd.matrixSizeType()
         if self.trajectory_type == 'radial':
-            encoding_fov.y = matrix_size
-            encoding_fov.x = matrix_size
-            encoding_fov.z = 5
-            encoding_matrix.x = matrix_size
-            encoding_matrix.y = matrix_size
-            encoding_matrix.z = 1
+            encoding_fov = ismrmrd.xsd.fieldOfViewMm(x=matrix_size, y=matrix_size, z=5)
+            encoding_matrix = ismrmrd.xsd.matrixSizeType(x=matrix_size, y=matrix_size, z=1)
         else:
-            encoding_fov.x = matrix_size
-            encoding_fov.y = matrix_size
-            encoding_fov.z = 5
-            encoding_matrix.x = matrix_size
-            encoding_matrix.y = matrix_size
-            encoding_matrix.z = 1
+            encoding_fov = ismrmrd.xsd.fieldOfViewMm(x=matrix_size, y=matrix_size, z=5)
+            encoding_matrix = ismrmrd.xsd.matrixSizeType(x=matrix_size, y=matrix_size, z=1)
 
-        encoding_space = ismrmrd.xsd.encodingSpaceType()
-        encoding_space.matrixSize = encoding_matrix
-        encoding_space.fieldOfView_mm = encoding_fov
-        encoding.encodedSpace = encoding_space
+        encoding_space = ismrmrd.xsd.encodingSpaceType(matrixSize=encoding_matrix, fieldOfView_mm=encoding_fov)
 
-        recon_fov = ismrmrd.xsd.fieldOfViewMm()
-        recon_fov.x = matrix_size
-        recon_fov.y = matrix_size
-        recon_fov.z = 5
-
-        recon_matrix = ismrmrd.xsd.matrixSizeType()
-        recon_matrix.x = n_x
-        recon_matrix.y = n_y
-        recon_matrix.z = 1
-
-        recon_space = ismrmrd.xsd.encodingSpaceType()
-        recon_space.matrixSize = recon_matrix
-        recon_space.fieldOfView_mm = recon_fov
-        encoding.reconSpace = recon_space
+        recon_fov = ismrmrd.xsd.fieldOfViewMm(x=matrix_size, y=matrix_size, z=5)
+        recon_matrix = ismrmrd.xsd.matrixSizeType(x=n_x, y=n_y, z=1)
+        recon_space = ismrmrd.xsd.encodingSpaceType(matrixSize=recon_matrix, fieldOfView_mm=recon_fov)
 
         # Encoding limits
         limits = ismrmrd.xsd.encodingLimitsType()
@@ -120,7 +90,12 @@ class IsmrmrdTestData:
         limits1.maximum = n_y - 1
         limits.kspace_encoding_step_1 = limits1
 
-        encoding.encodingLimits = limits
+        # Encoding
+        trajectory = ismrmrd.xsd.trajectoryType(self.trajectory_type)
+        encoding = ismrmrd.xsd.encodingType(
+            reconSpace=recon_space, encodedSpace=encoding_space, trajectory=trajectory, encodingLimits=limits
+        )
+
         header.encoding.append(encoding)
 
         dataset.write_xml_header(header.toXML('utf-8'))
