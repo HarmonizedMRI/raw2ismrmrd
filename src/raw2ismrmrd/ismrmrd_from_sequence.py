@@ -76,8 +76,8 @@ def ismrmrd_from_sequence(
 
     n_readout = adc_data_list[-1].shape[-1]
     num_channels = adc_data_list[-1].shape[-2]
-    n_phase_encoding = max(adc_labels.get('LIN', 0)) - min(adc_labels.get('LIN', 0)) + 1
-    n_slice_encoding = max(adc_labels.get('PAR', 0)) - min(adc_labels.get('PAR', 0)) + 1
+    n_phase_encoding = max(adc_labels.get('LIN', (0,))) - min(adc_labels.get('LIN', (0,))) + 1
+    n_slice_encoding = max(adc_labels.get('PAR', (0,))) - min(adc_labels.get('PAR', (0,))) + 1
     hdr = create_header(
         traj_type='cartesian',
         encoding_fov=Fov(*sequence.get_definition('FOV').tolist()),

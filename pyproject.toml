@@ -43,6 +43,7 @@ dependencies = [
     "matplotlib<4.0",
     "pypulseq>=1.4.2",
     "ismrmrd>=1.14.1",
+    "h5py",
 ]
 
 [project.optional-dependencies]
@@ -54,7 +55,7 @@ tests = [
     "pytest-cov",
     "pytest-xdist",
 ]
-examples = ["mrpro", "einops", "ipykernel", "cmap"]
+examples = ["mrpro", "einops", "ipykernel", "cmap", "zenodo_get"]
 dev = ["mrpro[examples, tests]"]
 
 [project.urls]
@@ -117,5 +118,5 @@ skip-magic-trailing-comma = false
 locale = "en-us"
 
 [[tool.mypy.overrides]]
-module = ["ismrmrd.*", "pypulseq.*", "GERecon.*"]
+module = ["ismrmrd.*", "pypulseq.*", "GERecon.*", "h5py.*"]
 ignore_missing_imports = true
