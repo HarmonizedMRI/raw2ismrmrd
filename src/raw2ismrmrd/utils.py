@@ -123,12 +123,11 @@ def create_header(
     if set_limits is None:
         set_limits = Limits()
 
-    hdr = ismrmrd.xsd.ismrmrdHeader()
-
     # experimental conditions
     exp = ismrmrd.xsd.experimentalConditionsType()
     exp.H1resonanceFrequency_Hz = int(h1_resonance_freq)
-    hdr.experimentalConditions = exp
+
+    hdr = ismrmrd.xsd.ismrmrdHeader(experimentalConditions=exp)
 
     # user parameters
     dtime = ismrmrd.xsd.userParameterDoubleType()
