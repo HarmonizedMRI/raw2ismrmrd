@@ -42,7 +42,7 @@ dependencies = [
     "numpy>=1.23, <3.0",
     "matplotlib<4.0",
     "pypulseq>=1.4.2",
-    "ismrmrd>=1.14.1",
+    "ismrmrd>=1.14.1, <1.15",
     "h5py",
 ]
 
@@ -116,6 +116,9 @@ skip-magic-trailing-comma = false
 
 [tool.typos.default]
 locale = "en-us"
+
+[tool.typos.default.extend-words]
+arange = "arange" # torch.arange
 
 [[tool.mypy.overrides]]
 module = ["ismrmrd.*", "pypulseq.*", "GERecon.*", "h5py.*"]
