@@ -128,7 +128,7 @@ def create_header(
     hdr = ismrmrd.xsd.ismrmrdHeader(experimentalConditions=exp)
 
     # user parameters
-    dtime = ismrmrd.xsd.userParameterDoubleType(name='dwellTime_us', value=dwell_time * 1e6)
+    dtime = ismrmrd.xsd.userParameterDoubleType(name='dwellTime_us', value=float(dwell_time * 1e6))
     hdr.userParameters = ismrmrd.xsd.userParametersType()
     hdr.userParameters.userParameterDouble.append(dtime)
 
