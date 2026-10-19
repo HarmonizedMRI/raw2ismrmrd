@@ -63,6 +63,7 @@ def create_header(
     phase_limits: Limits | None = None,
     set_limits: Limits | None = None,
     h1_resonance_freq: float = 127729200,  # 3T
+    extra_metadata: dict = {},
 ) -> ismrmrd.xsd.ismrmrdHeader:
     """
     Create an ISMRMRD header based on the given parameters.
@@ -101,6 +102,8 @@ def create_header(
         Min, max, and center limits for set.
     h1_resonance_freq
         Resonance frequency of water nuclei.
+    extra_metadata
+        additional metadata for ISMRMRD file that is not contained in .seq file
 
     Returns
     -------
@@ -126,6 +129,18 @@ def create_header(
     # experimental conditions
     exp = ismrmrd.xsd.experimentalConditionsType(H1resonanceFrequency_Hz=int(h1_resonance_freq))
     hdr = ismrmrd.xsd.ismrmrdHeader(experimentalConditions=exp)
+
+    # measurement information
+    # (see: https://github.com/kspaceKelvin/python-ismrmrd-server/blob/dicom2mrd.py)
+    hdr.measurementInformation = ismrmrd.xsd.measurementInformationType(patientPosition="FFS")
+    hdr.measurementInformation.protocolName = extra_metadata["protocol"] if "protocol" in extra_metadata else None
+    #hdr.measurementInformation.patientPosition = extra_metadata["patientPosition"] if "patientPosition" in extra_metadata else None
+
+    # acquisition system information
+    hdr.acquisitionSystemInformation = ismrmrd.xsd.acquisitionSystemInformationType()
+    hdr.acquisitionSystemInformation.systemVendor = extra_metadata["systemVendor"] if "systemVendor" in extra_metadata else None
+    hdr.acquisitionSystemInformation.systemModel = extra_metadata["systemModel"] if "systemModel" in extra_metadata else None
+    hdr.acquisitionSystemInformation.systemFieldStrength_T = extra_metadata["fieldStrength"] if "fieldStrength" in extra_metadata else None
 
     # user parameters
     dtime = ismrmrd.xsd.userParameterDoubleType(name='dwellTime_us', value=float(dwell_time * 1e6))
