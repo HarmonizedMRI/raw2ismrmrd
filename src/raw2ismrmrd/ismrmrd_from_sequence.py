@@ -19,6 +19,8 @@ def ismrmrd_from_sequence(
     filename_mrd: Path | str,
     adc_time_stamps: Sequence[float] | None = None,
     replace_mrd: bool = False,
+    vendor: str = "Siemens",
+    extra_metadata: dict = {},
 ) -> ismrmrd.Dataset:
     """Create ismrmrd file based on list of adc data and pulseq sequence file.
 
@@ -34,6 +36,8 @@ def ismrmrd_from_sequence(
         list of time stamps for each adc data block, in seconds. If None, acquisition time stamps will be 0.
     replace_mrd
         whether to replace existing ISMRMRD file if it already exists
+    extra_metadata
+        additional metadata for ISMRMRD file that is not contained in .seq file
 
     Returns
     -------
@@ -59,7 +63,8 @@ def ismrmrd_from_sequence(
     for key in adc_labels:
         adc_labels[key] = adc_labels[key].tolist()
 
-    if (n_labels := len(adc_labels.get('LIN', 0))) != (n_adc_data := len(adc_data_list)):
+    if (n_labels := len(adc_labels.get('LIN', (0,)))) != (n_adc_data := len(adc_data_list)) and (n_labels := len(adc_labels.get('TRID', (0,)))) != (n_adc_data := len(adc_data_list)):
+        # Add second check for GE systems where LIN might not be set
         raise ValueError(f'Number of acquisitions ({n_adc_data}) and labels ({n_labels}) do not match.')
 
     # Get adc blocks
@@ -94,6 +99,7 @@ def ismrmrd_from_sequence(
         phase_limits=Limits.from_label_list(adc_labels.get('PHS', (0,))),
         set_limits=Limits.from_label_list(adc_labels.get('SET', (0,))),
         h1_resonance_freq=sequence.system.gamma * sequence.system.B0,
+        extra_metadata=extra_metadata,
     )
 
     def get_sequence_definition(sequence, definition_parameter: str, value_scaling: float = 1.0):
@@ -128,7 +134,11 @@ def ismrmrd_from_sequence(
         # Time stamps are saved as uint32.
         # Vendors therefore not use millisecond but custom time stamps in units of 2.5 ms.
         if adc_time_stamps is not None:
-            acq.acquisition_time_stamp = int(adc_time_stamps[idx] / 2.5e3)
+            if vendor == "Siemens":
+                acq.acquisition_time_stamp = int(adc_time_stamps[idx] / 2.5e3)
+            elif vendor == "GE":
+                # For GE acquisitions write in us
+                acq.acquisition_time_stamp = int(adc_time_stamps[idx])
 
         acq.idx.kspace_encode_step_1 = adc_labels.get('LIN')[idx] if 'LIN' in adc_labels else 0
         acq.idx.kspace_encode_step_2 = adc_labels.get('PAR')[idx] if 'PAR' in adc_labels else 0
