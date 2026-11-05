@@ -20,7 +20,7 @@ include-package-data = true
 name = "raw2ismrmrd"
 description = "(Py)Pulseq-based converter of raw data into ismrmrd format."
 readme = "README.md"
-requires-python = ">=3.10,<3.14"
+requires-python = ">=3.10"
 dynamic = ["version"]
 keywords = ["MRI, Pulseq, PyPulseq, ISMRMRD"]
 authors = [
@@ -35,6 +35,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Programming Language :: Python :: 3 :: Only",
 ]
 
