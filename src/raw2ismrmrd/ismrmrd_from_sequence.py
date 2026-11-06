@@ -20,7 +20,7 @@ def ismrmrd_from_sequence(
     adc_time_stamps: Sequence[float] | None = None,
     replace_mrd: bool = False,
     vendor: str = "Siemens",
-    extra_metadata: dict = None,
+    extra_metadata: dict | None = None,
 ) -> ismrmrd.Dataset:
     """Create ismrmrd file based on list of adc data and pulseq sequence file.
 
