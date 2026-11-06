@@ -20,7 +20,7 @@ def ismrmrd_from_sequence(
     adc_time_stamps: Sequence[float] | None = None,
     replace_mrd: bool = False,
     vendor: str = "Siemens",
-    extra_metadata: dict = {},
+    extra_metadata: dict = None,
 ) -> ismrmrd.Dataset:
     """Create ismrmrd file based on list of adc data and pulseq sequence file.
 
@@ -63,7 +63,8 @@ def ismrmrd_from_sequence(
     for key in adc_labels:
         adc_labels[key] = adc_labels[key].tolist()
 
-    if (n_labels := len(adc_labels.get('LIN', (0,)))) != (n_adc_data := len(adc_data_list)) and (n_labels := len(adc_labels.get('TRID', (0,)))) != (n_adc_data := len(adc_data_list)):
+    if ((n_labels := len(adc_labels.get('LIN', (0,)))) != (n_adc_data := len(adc_data_list)) and 
+        (n_labels := len(adc_labels.get('TRID', (0,)))) != (n_adc_data := len(adc_data_list))):
         # Add second check for GE systems where LIN might not be set
         raise ValueError(f'Number of acquisitions ({n_adc_data}) and labels ({n_labels}) do not match.')
 
