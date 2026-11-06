@@ -63,7 +63,7 @@ def create_header(
     phase_limits: Limits | None = None,
     set_limits: Limits | None = None,
     h1_resonance_freq: float = 127729200,  # 3T
-    extra_metadata: dict = None,
+    extra_metadata: dict | None = None,
 ) -> ismrmrd.xsd.ismrmrdHeader:
     """
     Create an ISMRMRD header based on the given parameters.
