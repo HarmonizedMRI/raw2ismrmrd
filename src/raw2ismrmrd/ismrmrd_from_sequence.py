@@ -141,9 +141,9 @@ def ismrmrd_from_sequence(
         # For ISMRMRD: time stamps are saved as uint32, so we convert to ms.
         if adc_time_stamps is not None:
             if vendor == 'Siemens':
-                acq.acquisition_time_stamp = int((adc_time_stamps[idx] / 2.5) *1e3)
+                acq.acquisition_time_stamp = int((adc_time_stamps[idx] / 2.5) * 1e3)
             elif vendor == 'GE':
-                acq.acquisition_time_stamp = int(adc_time_stamps[idx] * 1e3)            
+                acq.acquisition_time_stamp = int(adc_time_stamps[idx] * 1e3)
 
         acq.idx.kspace_encode_step_1 = adc_labels.get('LIN')[idx] if 'LIN' in adc_labels else 0
         acq.idx.kspace_encode_step_2 = adc_labels.get('PAR')[idx] if 'PAR' in adc_labels else 0
