@@ -69,9 +69,9 @@ def ismrmrd_from_sequence(
     if (n_labels := len(adc_labels.get('LIN', (0,)))) != (n_adc_data := len(adc_data_list)):
         if (n_labels := len(adc_labels.get('TRID', (0,)))) != (n_adc_data := len(adc_data_list)):
             # Add second check for GE systems where LIN might not be set
-            print('Warning: LIN label was not used. TRID != 0 so assuming GE data.')
-        else:
             raise ValueError(f'Number of acquisitions ({n_adc_data}) and labels ({n_labels}) do not match.')
+        else:
+            print('Warning: LIN label was not used. TRID != 0 so assuming GE data.')
 
     # Get adc blocks
     adc_blocks = [sequence.get_block(be).adc for be in sequence.block_events if sequence.get_block(be).adc is not None]
